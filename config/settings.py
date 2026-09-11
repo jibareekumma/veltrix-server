@@ -141,6 +141,7 @@ DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER')
 
 
 AUTH_USER_MODEL = 'accounts.User'
+GOOGLE_CLIENT_ID = '791368404488-nlgk29iue8m0b59b0lcjl3dgpbpvst6e.apps.googleusercontent.com'
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',

@@ -1,6 +1,11 @@
 
 
 
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+from django.conf import settings
+from accounts.serializers import GoogleAuthSerializer
+
 
 import random
 from django.core.mail import send_mail
@@ -151,3 +156,43 @@ class ResetPasswordView(APIView):
         reset_code.save()
 
         return Response({'detail': 'Password reset successful'}, status=status.HTTP_200_OK)
+
+
+
+class GoogleAuthView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = GoogleAuthSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        credential = serializer.validated_data['credential']
+
+        try:
+            idinfo = id_token.verify_oauth2_token(
+                credential, google_requests.Request(), settings.GOOGLE_CLIENT_ID
+            )
+        except ValueError:
+            return Response({'detail': 'Invalid Google token'}, status=status.HTTP_400_BAD_REQUEST)
+
+        email = idinfo.get('email')
+        first_name = idinfo.get('given_name', '')
+        last_name = idinfo.get('family_name', '')
+
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={'first_name': first_name, 'last_name': last_name},
+        )
+
+        if created:
+            user.set_unusable_password()
+            user.save()
+
+        tokens = get_tokens_for_user(user)
+        return Response({
+            'user': {
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+            },
+            'tokens': tokens,
+        }, status=status.HTTP_200_OK)

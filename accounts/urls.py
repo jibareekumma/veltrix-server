@@ -7,6 +7,7 @@ from accounts.views import (
     RequestResetCodeView,
     VerifyResetCodeView,
     ResetPasswordView,
+    GoogleAuthView,
 )
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -17,4 +18,5 @@ urlpatterns = [
     path('password-reset/request/', RequestResetCodeView.as_view(), name='password_reset_request'),
     path('password-reset/verify/', VerifyResetCodeView.as_view(), name='password_reset_verify'),
     path('password-reset/confirm/', ResetPasswordView.as_view(), name='password_reset_confirm'),
+    path('google/', GoogleAuthView.as_view(), name='google_auth'),
 ]
